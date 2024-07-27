@@ -14,7 +14,9 @@ async function bootstrap() {
       AppModule,
       new ExpressAdapter(expressApp),
     );
-    nestApp.enableCors();
+    nestApp.enableCors({
+      origin: (req, callback) => callback(null, true),
+    });
     await nestApp.init();
     cachedServer = serverlessExpress({ app: expressApp });
   }
@@ -22,8 +24,13 @@ async function bootstrap() {
 }
 
 export const handler = async (event: any, context: any, callback: any) => {
+  console.log('ENVIRONMENT VARIABLES\n' + JSON.stringify(process.env, null, 2));
+  console.info('EVENT\n' + JSON.stringify(event, null, 2));
+
   const server = await bootstrap();
   const result = await server(event, context, callback);
-  
+
   return result;
 };
+
+exports.handler = handler;
