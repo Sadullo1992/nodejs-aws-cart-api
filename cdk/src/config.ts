@@ -1,7 +1,6 @@
 import * as dotenv from 'dotenv';
-import path = require('path');
 
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config();
 
 export type ConfigProps = {
   POSTGRES_HOST: string;

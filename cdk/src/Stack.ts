@@ -27,6 +27,14 @@ export class CartServiceStack extends cdk.Stack {
         POSTGRES_USER: config.POSTGRES_USER,
         POSTGRES_PASSWORD: config.POSTGRES_PASSWORD,
       },
+      bundling: {
+        externalModules: [
+          '@nestjs/microservices',
+          '@nestjs/websockets',
+          'class-transformer',
+          'class-validator',
+        ],
+      },
     });
 
     const functionUrl = cartServiceLambda.addFunctionUrl({
