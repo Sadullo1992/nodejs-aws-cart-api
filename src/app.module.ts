@@ -11,16 +11,19 @@ import { ConfigModule } from '@nestjs/config';
 import { Cart } from './entities/Cart.entity';
 import { CartItem } from './entities/CartItem.entity';
 import { Order } from './entities/Order.entity';
+import { AppDataSource } from './ormconfig';
 
 dotenv.config();
 
-const {
-  POSTGRES_HOST,
-  POSTGRES_PORT,
-  POSTGRES_DB,
-  POSTGRES_USER,
-  POSTGRES_PASSWORD,
-} = process.env;
+// const {
+//   POSTGRES_HOST,
+//   POSTGRES_PORT,
+//   POSTGRES_DB,
+//   POSTGRES_USER,
+//   POSTGRES_PASSWORD,
+// } = process.env;
+
+const ormConfig = AppDataSource.options;
 
 @Module({
   imports: [
@@ -29,16 +32,10 @@ const {
       isGlobal: true,
     }),
     TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: POSTGRES_HOST,
-      port: parseInt(POSTGRES_PORT, 10) || 5432,
-      username: POSTGRES_USER,
-      password: POSTGRES_PASSWORD,
-      database: POSTGRES_DB,
-      synchronize: true,
-      ssl: false,
+      ...ormConfig,
       autoLoadEntities: true,
-      entities: [Cart, CartItem, Order]
+      entities: [Cart, CartItem, Order],
+      migrations: [`${__dirname}/migrations/*.ts`],
     }),
     AuthModule,
     CartModule,
