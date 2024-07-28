@@ -15,12 +15,12 @@ export type CartItem = {
   product: Product,
   count: number,
 }
-
+ 
 export type Cart = {
   id: string,
-  user_id: string,
-  created_at: string,
-  updated_at: string,
-  status: CartStatuses,
+  user_i?: string,
+  created_at?: string,
+  updated_at?: string,
+  status?: CartStatuses,
   items: CartItem[],
 }
