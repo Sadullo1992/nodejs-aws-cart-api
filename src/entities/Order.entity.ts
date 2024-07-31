@@ -1,4 +1,11 @@
-import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+} from 'typeorm';
 import { Cart } from './Cart.entity';
 
 @Entity({ name: 'orders' })
@@ -21,8 +28,7 @@ export class Order extends BaseEntity {
   @Column({ type: 'int' })
   total: number;
 
-  @ManyToOne(() => Cart, (cart) => cart.orders)
-  @JoinColumn({ name: 'cart_id' })
-  cart: Cart;
+  // @ManyToOne(() => Cart, (cart) => cart.orders)
+  // @JoinColumn({ name: 'cart_id' })
+  // cart: Cart;
 }
- 
