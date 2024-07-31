@@ -8,6 +8,7 @@ import {
   Post,
   UseGuards,
   HttpStatus,
+  HttpException,
 } from '@nestjs/common';
 
 // import { BasicAuthGuard, JwtAuthGuard } from '../auth';
@@ -40,7 +41,6 @@ export class CartController {
   // @UseGuards(BasicAuthGuard)
   @Put()
   async updateUserCart(@Req() req: AppRequest, @Body() body) {
-    // TODO: validate body payload...
     const cartItems = await this.cartService.updateByUserId(
       getUserIdFromRequest(req),
       body,
@@ -61,38 +61,49 @@ export class CartController {
     };
   }
 
-  //   // @UseGuards(JwtAuthGuard)
-  //   // @UseGuards(BasicAuthGuard)
-  //   @Post('checkout')
-  //   checkout(@Req() req: AppRequest, @Body() body) {
-  //     const userId = getUserIdFromRequest(req);
-  //     const cart = this.cartService.findByUserId(userId);
+  // @UseGuards(JwtAuthGuard)
+  // @UseGuards(BasicAuthGuard)
+  @Post('checkout')
+  async checkout(@Req() req: AppRequest, @Body() body) {
+    const userId = getUserIdFromRequest(req);
+    const cart = await this.cartService.findByUserId(userId);
 
-  //     if (!(cart && cart.items.length)) {
-  //       const statusCode = HttpStatus.BAD_REQUEST;
-  //       req.statusCode = statusCode
+    const items = await this.cartService.findAllCartItems(cart.id);
 
-  //       return {
-  //         statusCode,
-  //         message: 'Cart is empty',
-  //       }
-  //     }
+    if (!(cart && items.length)) {
+      const statusCode = HttpStatus.BAD_REQUEST;
+      req.statusCode = statusCode;
 
-  //     const { id: cartId, items } = cart;
-  //     const total = calculateCartTotal(cart);
-  //     const order = this.orderService.create({
-  //       ...body, // TODO: validate and pick only necessary data
-  //       userId,
-  //       cartId,
-  //       items,
-  //       total,
-  //     });
-  //     this.cartService.removeByUserId(userId);
+      return {
+        statusCode,
+        message: 'Cart is empty',
+      };
+    }
 
-  //     return {
-  //       statusCode: HttpStatus.OK,
-  //       message: 'OK',
-  //       data: { order }
-  //     }
-  //   }
+    const { address } = body;
+    if (!address) {
+      return {
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Address object not provided!',
+      };
+    }
+
+    const total = calculateCartTotal(items);
+
+    const order = await this.orderService.create({
+      delivery: JSON.stringify(address),
+      user_id: userId,
+      cart_id: cart.id,
+      items,
+      total,
+    });
+
+    await this.cartService.removeByUserId(userId);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'OK',
+      data: { order },
+    };
+  }
 }

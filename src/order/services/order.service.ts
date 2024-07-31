@@ -1,39 +1,51 @@
 import { Injectable } from '@nestjs/common';
+import { Cart } from 'src/entities/Cart.entity';
+import { CartItem } from 'src/entities/CartItem.entity';
+import { Order } from 'src/entities/Order.entity';
+import { DataSource } from 'typeorm';
 import { v4 } from 'uuid';
 
-import { Order } from '../models';
+type OrderDto = Pick<Order, 'user_id' | 'cart_id' | 'delivery' | 'total'> & {
+  items: CartItem[];
+};
 
 @Injectable()
 export class OrderService {
-  private orders: Record<string, Order> = {};
+  constructor(private dataSource: DataSource) {}
 
-  findById(orderId: string): Order {
-    return this.orders[orderId];
-  }
-
-  create(data: any) {
+  async create({ cart_id, items, ...rest }: OrderDto) {
     const id = v4();
     const order = {
-      ...data,
+      ...rest,
       id,
-      status: 'inProgress',
+      status: 'PROCESSED',
     };
 
-    this.orders[id] = order;
+    const date = new Date().toISOString();
+    const cartDto = {
+      status: 'ORDERED',
+      updated_at: date,
+    };
 
-    return order;
-  }
+    const queryRunner = this.dataSource.createQueryRunner();
 
-  update(orderId, data) {
-    const order = this.findById(orderId);
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const orderModel = await queryRunner.manager.create(Order, order).save();
+      await queryRunner.manager.update(Cart, cart_id, cartDto);
 
-    if (!order) {
-      throw new Error('Order does not exist.');
+      await queryRunner.commitTransaction();
+
+      const cart = await queryRunner.manager.findOne(Cart, {
+        where: { id: cart_id },
+      });
+
+      return { ...orderModel, cart_id, cart: { ...cart, items } };
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+    } finally {
+      await queryRunner.release();
     }
-
-    this.orders[orderId] = {
-      ...data,
-      id: orderId,
-    };
   }
 }

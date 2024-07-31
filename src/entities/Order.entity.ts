@@ -13,22 +13,22 @@ export class Order extends BaseEntity {
   @PrimaryColumn()
   id: string;
 
-  @Column({ type: 'json' })
-  payment: string;
+  @Column()
+  user_id: string;
 
-  @Column({ type: 'json' })
+  @Column({ nullable: true })
+  cart_id: string;
+
+  @Column({ type: 'json', nullable: true })
   delivery: string;
 
-  @Column()
-  comments: string;
-
-  @Column()
+  @Column({ type: 'enum', enum: ['ORDERED', 'PROCESSED'] })
   status: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'float' })
   total: number;
 
-  // @ManyToOne(() => Cart, (cart) => cart.orders)
-  // @JoinColumn({ name: 'cart_id' })
-  // cart: Cart;
+  @ManyToOne(() => Cart, (cart) => cart.orders)
+  @JoinColumn({ name: 'cart_id' })
+  cart: Cart;
 }

@@ -23,7 +23,7 @@ export class Cart extends BaseEntity {
   @Column({ type: 'date' })
   updated_at: string;
 
-  @Column({ type: 'enum', enum: ['OPEN', 'STATUS'] })
+  @Column({ type: 'enum', enum: ['OPEN', 'STATUS', 'ORDERED'] })
   status: string;
 
   @OneToMany(() => CartItem, (cartItems) => cartItems.cart, {
@@ -33,7 +33,7 @@ export class Cart extends BaseEntity {
   @JoinColumn({ referencedColumnName: 'id' })
   items: CartItem[];
 
-  // @OneToMany(() => Order, (orders) => orders.cart)
-  // @JoinColumn({ name: 'id' })
-  // orders: Order[]
+  @OneToMany(() => Order, (orders) => orders.cart)
+  @JoinColumn({ name: 'id' })
+  orders: Order[];
 }
