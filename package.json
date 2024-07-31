@@ -18,7 +18,12 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "typeorm:run": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli -d ./src/ormconfig.ts",
+    "migration:create": "cross-var ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli migration:create ./src/migrations/newTable",
+    "migration:generate": "cross-var npm run typeorm:run -- migration:generate ./src/migrations/newTable",
+    "migration:run": "npm run typeorm:run -- migration:run",
+    "migration:revert": "cross-env POSTGRES_HOST=localhost npm run typeorm:run -- migration:revert"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.3",
@@ -27,13 +32,18 @@
     "@nestjs/jwt": "^10.1.0",
     "@nestjs/passport": "^10.0.0",
     "@nestjs/platform-express": "^10.0.3",
+    "@nestjs/typeorm": "^10.0.2",
+    "@vendia/serverless-express": "^4.12.6",
+    "cross-var": "^1.1.0",
     "helmet": "^7.0.0",
     "passport": "^0.6.0",
     "passport-http": "^0.3.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
+    "pg": "^8.12.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
+    "typeorm": "^0.3.20",
     "uuid": "^9.0.0"
   },
   "devDependencies": {

@@ -1,55 +1,136 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Cart as CartEntity } from 'src/entities/Cart.entity';
+import { CartItem } from 'src/entities/CartItem.entity';
+import { Product } from 'src/entities/Product.entity';
+import { Repository } from 'typeorm';
+import { Product as TProduct, CartItem as TCartItem } from '../models';
 
 import { v4 } from 'uuid';
 
-import { Cart } from '../models';
-
 @Injectable()
 export class CartService {
-  private userCarts: Record<string, Cart> = {};
+  constructor(
+    @InjectRepository(CartEntity)
+    private cartRepository: Repository<CartEntity>,
+    @InjectRepository(CartItem)
+    private cartItemRepository: Repository<CartItem>,
+    @InjectRepository(Product)
+    private productRepository: Repository<Product>,
+  ) {}
 
-  findByUserId(userId: string): Cart {
-    return this.userCarts[ userId ];
+  async findByUserId(userId: string) {
+    return await this.cartRepository.findOne({
+      where: {
+        user_id: userId,
+      },
+      relations: {
+        items: { product: true },
+      },
+    });
   }
 
-  createByUserId(userId: string) {
+  async createByUserId(userId: string) {
     const id = v4();
+    const date = new Date().toISOString();
+
     const userCart = {
       id,
-      items: [],
+      user_id: userId,
+      created_at: date,
+      updated_at: date,
+      status: 'OPEN',
     };
 
-    this.userCarts[ userId ] = userCart;
+    const { id: cartId } = await this.cartRepository.create(userCart).save();
 
-    return userCart;
+    return await this.cartRepository.findOne({
+      where: { id: cartId },
+      relations: { items: { product: true } },
+    });
   }
 
-  findOrCreateByUserId(userId: string): Cart {
-    const userCart = this.findByUserId(userId);
+  async findOrCreateByUserId(userId: string) {
+    const userCart = await this.findByUserId(userId);
 
     if (userCart) {
       return userCart;
     }
 
-    return this.createByUserId(userId);
+    return await this.createByUserId(userId);
   }
 
-  updateByUserId(userId: string, { items }: Cart): Cart {
-    const { id, ...rest } = this.findOrCreateByUserId(userId);
+  async updateByUserId(userId: string, cartItemDto: TCartItem) {
+    const cart = await this.findOrCreateByUserId(userId);
 
-    const updatedCart = {
-      id,
-      ...rest,
-      items: [ ...items ],
+    await this.createOrUpdateCartItem(cart.id, cartItemDto);
+
+    const date = new Date().toISOString();
+    cart.updated_at = date;
+    await cart.save();
+
+    return await this.findAllCartItems(cart.id);
+  }
+
+  async removeByUserId(userId: string) {
+    const cart = await this.cartRepository.findOne({
+      where: { user_id: userId },
+    });
+
+    const items = await this.findAllCartItems(cart.id);
+
+    items.forEach(async (cartItem) => await cartItem.remove());
+
+    await cart.remove();
+  }
+
+  // Product
+  async createProduct(product: TProduct) {
+    return await this.productRepository.create(product).save();
+  }
+
+  // CartItem
+  async findAllCartItems(cartId: string) {
+    const items = await this.cartItemRepository.find({
+      where: { cart_id: cartId },
+      relations: { product: true },
+    });
+
+    return items;
+  }
+
+  async createCartItem(cartId: string, { product, count }: TCartItem) {
+    const cartItem = await this.cartItemRepository
+      .create({
+        product_id: product.id,
+        count,
+        cart_id: cartId,
+      })
+      .save();
+
+    return cartItem;
+  }
+
+  async createOrUpdateCartItem(cartId: string, cartItemDto: TCartItem) {
+    const { product, count } = cartItemDto;
+    const cartItem = await this.cartItemRepository.findOne({
+      where: { product_id: product.id },
+    });
+
+    if (!cartItem) {
+      await this.createProduct(product);
+      const data = await this.createCartItem(cartId, cartItemDto);
+      return data;
     }
 
-    this.userCarts[ userId ] = { ...updatedCart };
+    // remove cartItem with product
+    if (count === 0) {
+      await cartItem.remove();
+      return;
+    }
 
-    return { ...updatedCart };
+    cartItem.count = count;
+    const data = await cartItem.save();
+    return data;
   }
-
-  removeByUserId(userId): void {
-    this.userCarts[ userId ] = null;
-  }
-
 }
