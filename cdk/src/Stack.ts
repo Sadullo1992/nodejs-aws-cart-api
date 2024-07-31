@@ -39,15 +39,6 @@ export class CartServiceStack extends cdk.Stack {
 
     const functionUrl = cartServiceLambda.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE,
-      cors: {
-        allowedOrigins: ['*'],
-        allowedMethods: [
-          lambda.HttpMethod.GET,
-          lambda.HttpMethod.PUT,
-          lambda.HttpMethod.DELETE,
-        ],
-        allowedHeaders: ['*'],
-      },
     });
 
     new cdk.CfnOutput(this, 'cart-service-function-url', {
