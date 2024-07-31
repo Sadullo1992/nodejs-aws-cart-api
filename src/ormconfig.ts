@@ -3,6 +3,7 @@ import { DataSource } from 'typeorm';
 import { Cart } from './entities/Cart.entity';
 import { CartItem } from './entities/CartItem.entity';
 import { Order } from './entities/Order.entity';
+import { Product } from './entities/Product.entity';
 
 dotenv.config();
 
@@ -25,6 +26,6 @@ export const AppDataSource = new DataSource({
   synchronize: true,
   migrationsRun: false,
   logging: true,
-  entities: [Cart, CartItem, Order],
+  entities: [Cart, CartItem, Order, Product],
   migrations: ['src/migrations/*.ts'],
 });

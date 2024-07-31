@@ -1,4 +1,11 @@
-import { BaseEntity, Column, Entity, JoinColumn, OneToMany, PrimaryColumn } from 'typeorm';
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  PrimaryColumn,
+} from 'typeorm';
 import { CartItem } from './CartItem.entity';
 import { Order } from './Order.entity';
 
@@ -19,11 +26,14 @@ export class Cart extends BaseEntity {
   @Column({ type: 'enum', enum: ['OPEN', 'STATUS'] })
   status: string;
 
-  @OneToMany(() => CartItem, (cartItems) => cartItems.cart)
-  @JoinColumn({ name: 'id' })
-  items: CartItem[]
+  @OneToMany(() => CartItem, (cartItems) => cartItems.cart, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ referencedColumnName: 'id' })
+  items: CartItem[];
 
-  @OneToMany(() => Order, (orders) => orders.cart)
-  @JoinColumn({ name: 'id' })
-  orders: Order[]
+  // @OneToMany(() => Order, (orders) => orders.cart)
+  // @JoinColumn({ name: 'id' })
+  // orders: Order[]
 }

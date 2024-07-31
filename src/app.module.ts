@@ -12,16 +12,9 @@ import { Cart } from './entities/Cart.entity';
 import { CartItem } from './entities/CartItem.entity';
 import { Order } from './entities/Order.entity';
 import { AppDataSource } from './ormconfig';
+import { Product } from './entities/Product.entity';
 
 dotenv.config();
-
-// const {
-//   POSTGRES_HOST,
-//   POSTGRES_PORT,
-//   POSTGRES_DB,
-//   POSTGRES_USER,
-//   POSTGRES_PASSWORD,
-// } = process.env;
 
 const ormConfig = AppDataSource.options;
 
@@ -34,7 +27,7 @@ const ormConfig = AppDataSource.options;
     TypeOrmModule.forRoot({
       ...ormConfig,
       autoLoadEntities: true,
-      entities: [Cart, CartItem, Order],
+      entities: [Cart, CartItem, Order, Product],
       migrations: [`${__dirname}/migrations/*.ts`],
     }),
     AuthModule,
