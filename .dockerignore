@@ -1,9 +1,12 @@
+# node_modules will be created by package.json
 **node_modules
+# We dont need . files
 .*
-Dockerfile
 node.code-workspace
 README.md
 docker-compose.yml
+# This cdk and sql-queries folders from previous task
 cdk
 sql-queries
+# dist folder will be created in docker
 dist
