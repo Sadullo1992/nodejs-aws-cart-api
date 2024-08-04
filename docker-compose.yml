@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+    command: postgres -c log_statement=all
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app-network
+  app:
+    container_name: app
+    restart: unless-stopped
+    build: .
+    ports:
+      - 80:${PORT}
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      PORT: ${PORT}
+    networks:
+      - app-network
+
+volumes:
+  pgdata:
+
+networks:
+  app-network:
+    driver: bridge
